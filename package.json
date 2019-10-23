@@ -2,9 +2,9 @@
   "name": "hw1_pointinpolygon_nodejs",
   "version": "1.0.0",
   "description": "",
-  "main": "webService.js",
+  "main": "./src/webService.js",
   "scripts": {
-    "start": "node webService.js"
+    "start": "node ./src/webService.js"
   },
   "author": "",
   "license": "ISC",
