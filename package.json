@@ -1,0 +1,14 @@
+{
+  "name": "hw1_pointinpolygon_nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webService.js",
+  "scripts": {
+    "start": "node webService.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "point-in-polygon": "^1.0.1"
+  }
+}
