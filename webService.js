@@ -41,7 +41,12 @@ webService.get(webServicePaths.isPointInPolygon_get, (req, res, next) => {
     // res.send("Pouriya")
 })
 
-webService.listen(4002, () => {
+let port = process.env.PORT
+if(port === null || port ==="")
+{
+    port = 8000;
+}
+webService.listen(port, () => {
     console.log("App Is Running")
 })
 
