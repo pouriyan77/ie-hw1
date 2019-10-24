@@ -3,10 +3,10 @@ const express = require('express')
 const fs = require('fs')
 const pointInPolygon = require('point-in-polygon')
 const webService = express()
-const resourseFilePath = '../polygons.json'
+const resourceFilePath = './polygons.json'
 
-const isResourceJsonUpdated = true
-const polygonsCoordinates = undefined
+let isResourceJsonUpdated = true
+let polygonsCoordinates = undefined
 let resourceJsonObject = undefined
 
 const getPolygonsCoordinates = (jsonObject) => {
@@ -37,6 +37,10 @@ webService.use(webServicePaths.testPoint_get, (req, res, next) => {
     next()
 })
 
+webService.get(webServicePaths.getResourceFileContents_get, (req, res) => {
+    res.send(resourceJsonObject)
+})
+
 webService.get(webServicePaths.testPoint_get, (req, res, next) => {
     const {lat, lon} = req.query
     console.log(`${lat} and ${lon} requested`)
@@ -50,36 +54,60 @@ webService.get(webServicePaths.testPoint_get, (req, res, next) => {
     res.send(response)
 })
 
+
+webService.use(webServicePaths.addPolygon_put, (err, req, res, next) => {
+    // handle not json bodies
+    if(err.status === 400)
+    {
+        const errorMessage = "Wrong Json Format"
+        let response = {success : false,
+            message : `${errorMessage}`}
+
+        console.log(errorMessage);
+        
+        return res.send(response);
+    }
+    next()
+  });
+
 webService.put(webServicePaths.addPolygon_put, (req, res, next) => {
+    const successMessage = "New Polygon Added";
     let requestBody = req.body
-    let response = {success : false}
-    // response.success = true
-    res.send((resourceJsonObject))
+    let response = {success : true,
+                    message : `${successMessage}`}
+    
+    // update resource json object
+    resourceJsonObject.features.push(requestBody)
+    isResourceJsonUpdated = true
+    console.log(successMessage);
+    
+    res.send(response)
 })
-
-
-const writeGeoJsonToFile = (geoJsonString, filePath) => {
-    fs.writeFile(filePath, geoJsonString, (err) => {
-        if(err) throw err
-        console.log("Resource File Updated");
-    })
-}
-
 
 let port = process.env.PORT
 if(port === null || port ==="")
 {
     port = 8000;
 }
-webService.listen(8000, () => {
+webService.listen(port, () => {
     // initially load file to memory
-    fs.readFile(resourseFilePath, "utf-8", (err, data) => {
+    fs.readFile(resourceFilePath, "utf-8", (err, data) => {
         if(err) throw "Cannot Read File"
         resourceJsonObject = JSON.parse(data)
+        console.log("File Loaded to memory");
     })
 
+    const writeGeoJsonToFile = (geoJsonString, filePath) => {
+        fs.writeFile(filePath, geoJsonString, (err) => {
+            if(err) throw err
+            console.log("Resource File Updated");
+        })
+    }
+    
     // update resource file every 60 minutes
-    setInterval(writeGeoJsonToFile(resourceJsonObject), 3600000)
+    setInterval(() => {
+        writeGeoJsonToFile(JSON.stringify(resourceJsonObject), resourceFilePath)
+    }, 36000)
 
     console.log("App Is Running:")
 })
