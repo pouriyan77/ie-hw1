@@ -2,8 +2,8 @@
 in this project there is a webservice that has three HTTP API.
 
 * GET(/gis/testpoint) : that has two query parameters(lat, lon). after sending a request with these parameters(describing a 2D point) it says which polygons in the resourse file(polygons.json) include this point.
-* PUT(/gis/addpolygon) : you should send a json that describe a polygon in the body of this request to add it to resource file.
-* GET(/gis/getResourceFileContents): this request do not want any params and it returns the contents of resource file(polygons.json)
+* PUT(/gis/addpolygon) : you should send a json that describe a polygon in the body of this request to add it to the resource file.
+* GET(/gis/getResourceFileContents): this request do not want any params and it returns the contents of the resource file(polygons.json)
 
 ## What I Have Done
 
