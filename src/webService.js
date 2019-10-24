@@ -104,10 +104,10 @@ webService.listen(port, () => {
         })
     }
     
-    // update resource file every 60 minutes
+    // update resource file every 30 minutes
     setInterval(() => {
         writeGeoJsonToFile(JSON.stringify(resourceJsonObject), resourceFilePath)
-    }, 36000)
+    }, 1800000)
 
     console.log("App Is Running:")
 })
