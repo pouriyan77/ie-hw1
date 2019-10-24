@@ -3,11 +3,13 @@ const express = require('express')
 const fs = require('fs')
 const pointInPolygon = require('point-in-polygon')
 const webService = express()
-let resourceJson = undefined
-// console.log(resourceJson)
+const resourseFilePath = '../polygons.json'
 
-const getPolygonsCoordinates = (jsonString) => {
-    let jsonObject = JSON.parse(jsonString)
+const isResourceJsonUpdated = true
+const polygonsCoordinates = undefined
+let resourceJsonObject = undefined
+
+const getPolygonsCoordinates = (jsonObject) => {
     let featuresArray = jsonObject.features
     let polygonsCoordinates = new Map()
     for(let feature of featuresArray)
@@ -19,16 +21,25 @@ const getPolygonsCoordinates = (jsonString) => {
     return polygonsCoordinates
 }
 
-fs.readFile("./polygons.json", "utf-8", (err, data) => {
-    if(err) throw err
-    resourceJson = data
-})
-// console.log(resourceJson)
+webService.use(express.urlencoded({
+    extended: true
+}))
+webService.use(express.json())
 
-webService.get(webServicePaths.isPointInPolygon_get, (req, res, next) => {
+webService.use(webServicePaths.testPoint_get, (req, res, next) => {
+    if(isResourceJsonUpdated)
+    {
+       polygonsCoordinates = getPolygonsCoordinates(resourceJsonObject)
+       console.log("Polygons coordinates updated");
+       
+       isResourceJsonUpdated = false
+    }
+    next()
+})
+
+webService.get(webServicePaths.testPoint_get, (req, res, next) => {
     const {lat, lon} = req.query
-    console.log(`${lat} and ${lon}`)
-    const polygonsCoordinates = getPolygonsCoordinates(resourceJson)
+    console.log(`${lat} and ${lon} requested`)
     let response = {polygons : []}
     polygonsCoordinates.forEach((coordinates, polygonName) => {
         if(pointInPolygon([lon, lat], coordinates))
@@ -37,16 +48,39 @@ webService.get(webServicePaths.isPointInPolygon_get, (req, res, next) => {
         }
     })
     res.send(response)
-    // console.log("salam")
-    // res.send("Pouriya")
 })
+
+webService.put(webServicePaths.addPolygon_put, (req, res, next) => {
+    let requestBody = req.body
+    let response = {success : false}
+    // response.success = true
+    res.send((resourceJsonObject))
+})
+
+
+const writeGeoJsonToFile = (geoJsonString, filePath) => {
+    fs.writeFile(filePath, geoJsonString, (err) => {
+        if(err) throw err
+        console.log("Resource File Updated");
+    })
+}
+
 
 let port = process.env.PORT
 if(port === null || port ==="")
 {
     port = 8000;
 }
-webService.listen(port, () => {
-    console.log("App Is Running")
+webService.listen(8000, () => {
+    // initially load file to memory
+    fs.readFile(resourseFilePath, "utf-8", (err, data) => {
+        if(err) throw "Cannot Read File"
+        resourceJsonObject = JSON.parse(data)
+    })
+
+    // update resource file every 60 minutes
+    setInterval(writeGeoJsonToFile(resourceJsonObject), 3600000)
+
+    console.log("App Is Running:")
 })
 
